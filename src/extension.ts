@@ -6,7 +6,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.StatusBarAlignment.Left,
     100
   );
-  statusBarItem.text = "$(cloud-upload) Upload Code";
+  statusBarItem.text = "Hope";
   statusBarItem.command = "extension.uploadCode";
   statusBarItem.tooltip = "Upload your code to Firebase";
   statusBarItem.show();
@@ -23,24 +23,22 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       const code = editor.document.getText();
+      console.log(code);
       const versionNumber = `v${Date.now()}`;
 
       try {
         await addDoc(collection(db, "codeVersions"), {
-          userId: "student123", // Replace with actual user ID or obtain from authentication
-          code: code,
-          versionNumber: versionNumber,
-          timestamp: serverTimestamp(),
+          code: "code",
         });
         vscode.window.showInformationMessage("Code uploaded successfully!");
       } catch (error) {
-         if (error instanceof Error) {
-           vscode.window.showErrorMessage(
-             "Error uploading code: " + error.message
-           );
-         } else {
-           vscode.window.showErrorMessage("An unknown error occurred.");
-         }
+        if (error instanceof Error) {
+          vscode.window.showErrorMessage(
+            "Error uploading code: " + error.message
+          );
+        } else {
+          vscode.window.showErrorMessage("An unknown error occurred.");
+        }
       }
     }
   );
