@@ -1,26 +1,51 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+import { db, collection, addDoc, serverTimestamp } from "./firebaseConfig";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  const statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+    100
+  );
+  statusBarItem.text = "$(cloud-upload) Upload Code";
+  statusBarItem.command = "extension.uploadCode";
+  statusBarItem.tooltip = "Upload your code to Firebase";
+  statusBarItem.show();
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "Hope" is now active!');
+  context.subscriptions.push(statusBarItem);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('Hope.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Hope!');
-	});
+  let disposable = vscode.commands.registerCommand(
+    "extension.uploadCode",
+    async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showErrorMessage("No active editor found.");
+        return;
+      }
 
-	context.subscriptions.push(disposable);
+      const code = editor.document.getText();
+      const versionNumber = `v${Date.now()}`;
+
+      try {
+        await addDoc(collection(db, "codeVersions"), {
+          userId: "student123", // Replace with actual user ID or obtain from authentication
+          code: code,
+          versionNumber: versionNumber,
+          timestamp: serverTimestamp(),
+        });
+        vscode.window.showInformationMessage("Code uploaded successfully!");
+      } catch (error) {
+         if (error instanceof Error) {
+           vscode.window.showErrorMessage(
+             "Error uploading code: " + error.message
+           );
+         } else {
+           vscode.window.showErrorMessage("An unknown error occurred.");
+         }
+      }
+    }
+  );
+
+  context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}
