@@ -9,14 +9,14 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('Extension "my-extension" is now active!');
 
   const sidebarProvider = new SidebarProvider();
-  vscode.window.createTreeView("mySidebar", {
+  vscode.window.createTreeView("mySidebarView", {
     treeDataProvider: sidebarProvider,
   });
 
-  const uploadCodePanel = vscode.commands.registerCommand(
-    "extension.uploadCodePanel",
+  const openSidebarCommand = vscode.commands.registerCommand(
+    "extension.openMySidebarView",
     () => {
-      UploadCodePanel.createOrShow(context);
+      vscode.commands.executeCommand("workbench.view.explorer"); // This command will focus on the explorer view
     }
   );
 
@@ -51,7 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
  
-  context.subscriptions.push(disposable, uploadCodePanel);
+  context.subscriptions.push(disposable, openSidebarCommand);
 
   // Optional: Add a status bar button
   let statusBar = vscode.window.createStatusBarItem(

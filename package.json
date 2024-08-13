@@ -1,7 +1,7 @@
 {
   "name": "hope",
   "displayName": "Hope",
-  "description": "Customized version controll system",
+  "description": "Customized version control system",
   "version": "0.0.1",
   "publisher": "RatLabs",
   "engines": {
@@ -12,45 +12,34 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.uploadCode"
+    "onView:mySidebarView",
+    "onCommand:extension.openMySidebarView"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "extension.uploadCode",
-        "title": "Upload Code to Firebase"
-      },
-      {
-        "command": "extension.uploadCodePanel",
-        "title": "Open Upload Code Panel"
+        "command": "extension.openMySidebarView",
+        "title": "Open My Sidebar View"
       }
     ],
-    "views": {
-      "explorer": [
-        {
-          "id": "mySidebar",
-          "name": "My Sidebar"
-        }
-      ]
-    },
     "viewsContainers": {
       "activitybar": [
         {
           "id": "mySidebarContainer",
           "title": "My Sidebar",
-          "icon": "resources/sidebar-icon.svg"
+          "icon": "resources/activity-bar-icon.svg"
         }
       ]
     },
-    "statusBarItems": [
-      {
-        "command": "extension.uploadCode",
-        "text": "$(cloud-upload) Upload Code",
-        "alignment": "left",
-        "priority": 100
-      }
-    ]
+    "views": {
+      "mySidebarContainer": [
+        {
+          "id": "mySidebarView",
+          "name": "My Sidebar View"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
