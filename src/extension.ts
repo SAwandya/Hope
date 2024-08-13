@@ -9,14 +9,15 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('Extension "my-extension" is now active!');
 
   const sidebarProvider = new SidebarProvider();
-  vscode.window.createTreeView("mySidebarView", {
+  vscode.window.createTreeView("mySidebar", {
     treeDataProvider: sidebarProvider,
   });
 
   const openSidebarCommand = vscode.commands.registerCommand(
-    "extension.openMySidebarView",
+    "extension.openSidebar",
     () => {
-      vscode.commands.executeCommand("workbench.view.explorer"); // This command will focus on the explorer view
+      vscode.commands.executeCommand("workbench.view.explorer"); // This opens the Explorer view by default
+      // To focus on the custom sidebar view, additional steps may be needed depending on your setup
     }
   );
 

@@ -1,5 +1,3 @@
-// src/sidebarProvider.ts
-
 import * as vscode from "vscode";
 
 export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
@@ -8,16 +6,11 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   readonly onDidChangeTreeData: vscode.Event<SidebarItem | undefined> =
     this._onDidChangeTreeData.event;
 
-  constructor() {
-    // Initialize if needed
-  }
-
   getTreeItem(element: SidebarItem): vscode.TreeItem {
     return element;
   }
 
   getChildren(element?: SidebarItem): Thenable<SidebarItem[]> {
-    // Return the items for the tree view
     if (element === undefined) {
       return Promise.resolve([
         new SidebarItem("Upload Code", vscode.TreeItemCollapsibleState.None),
@@ -38,7 +31,7 @@ class SidebarItem extends vscode.TreeItem {
   ) {
     super(label, collapsibleState);
     this.command = {
-      command: "extension.uploadCodePanel",
+      command: "extension.uploadCode",
       title: "Upload Code",
     };
   }

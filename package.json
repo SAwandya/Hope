@@ -12,15 +12,15 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:mySidebarView",
-    "onCommand:extension.openMySidebarView"
+    "onCommand:extension.openSidebar",
+    "onView:mySidebar"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "extension.openMySidebarView",
-        "title": "Open My Sidebar View"
+        "command": "extension.openSidebar",
+        "title": "Open My Sidebar"
       }
     ],
     "viewsContainers": {
@@ -28,15 +28,15 @@
         {
           "id": "mySidebarContainer",
           "title": "My Sidebar",
-          "icon": "resources/activity-bar-icon.png"
+          "icon": "resources/activity-bar-icon.png" 
         }
       ]
     },
     "views": {
       "mySidebarContainer": [
         {
-          "id": "mySidebarView",
-          "name": "My Sidebar View"
+          "id": "mySidebar",
+          "name": "My Sidebar"
         }
       ]
     }
