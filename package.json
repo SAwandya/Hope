@@ -28,7 +28,7 @@
         {
           "id": "mySidebarContainer",
           "title": "My Sidebar",
-          "icon": "resources/activity-bar-icon.svg"
+          "icon": "resources/activity-bar-icon.png"
         }
       ]
     },
