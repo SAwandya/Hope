@@ -1,49 +1,54 @@
+// src/extension.ts
+
 import * as vscode from "vscode";
-import { db, collection, addDoc, serverTimestamp } from "./firebaseConfig";
+import { uploadCode } from "./firebaseConfig";
 
 export function activate(context: vscode.ExtensionContext) {
-  const statusBarItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    100
-  );
-  statusBarItem.text = "Hope";
-  statusBarItem.command = "extension.uploadCode";
-  statusBarItem.tooltip = "Upload your code to Firebase";
-  statusBarItem.show();
-
-  context.subscriptions.push(statusBarItem);
+  console.log('Extension "my-extension" is now active!');
 
   let disposable = vscode.commands.registerCommand(
     "extension.uploadCode",
     async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        vscode.window.showErrorMessage("No active editor found.");
+        vscode.window.showInformationMessage("No editor is active");
         return;
       }
 
       const code = editor.document.getText();
-      console.log(code);
-      const versionNumber = `v${Date.now()}`;
+      const sessionId = "00002"; // Replace with actual session ID logic
+      const studentId = "IT22004777"; // Replace with actual student ID logic
 
       try {
-        await addDoc(collection(db, "codeVersions"), {
-          code: "code",
-        });
-        vscode.window.showInformationMessage("Code uploaded successfully!");
+        const message = await uploadCode(sessionId, studentId, code);
+        if (message) {
+          vscode.window.showInformationMessage(message);
+        }
       } catch (error) {
         if (error instanceof Error) {
           vscode.window.showErrorMessage(
-            "Error uploading code: " + error.message
-          );
-        } else {
-          vscode.window.showErrorMessage("An unknown error occurred.");
-        }
+            `Error uploading code: ${error.message}`
+          )
+        }else {
+            vscode.window.showErrorMessage(
+            `An unkonwn error occurred`);
+          }
       }
     }
   );
 
   context.subscriptions.push(disposable);
+
+  // Optional: Add a status bar button
+  let statusBar = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100
+  );
+  statusBar.text = "Upload Code";
+  statusBar.command = "extension.uploadCode";
+  statusBar.show();
+
+  context.subscriptions.push(statusBar);
 }
 
 export function deactivate() {}

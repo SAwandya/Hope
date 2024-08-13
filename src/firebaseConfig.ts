@@ -4,8 +4,13 @@ import {
   getFirestore,
   collection,
   addDoc,
+  doc,
+  setDoc,
   serverTimestamp,
+  getDocs,
 } from "firebase/firestore";
+
+import { FirebaseApp } from "@firebase/app-types";
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -22,5 +27,39 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+export async function getCurrentVersion(sessionId: string, studentId: string) {
+  const versionCollectionRef = collection(
+    db,
+    `sessions/${sessionId}/students/${studentId}/codeVersions`
+  );
+  const snapshot = await getDocs(versionCollectionRef);
+  const versionCount = snapshot.size;
+  return versionCount + 1; // Version numbers start from 1
+}
 
-export { db, collection, addDoc, serverTimestamp };
+export async function uploadCode(
+  sessionId: string,
+  studentId: string,
+  code: string
+) {
+  try {
+    const currentVersion = await getCurrentVersion(sessionId, studentId);
+    const codeVersionRef = doc(
+      db,
+      `sessions/${sessionId}/students/${studentId}/codeVersions/${currentVersion}`
+    );
+
+    await setDoc(codeVersionRef, {
+      code: code,
+      timestamp: serverTimestamp(),
+    });
+
+    return `Code uploaded successfully as version ${currentVersion}`;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`Error: ${error.message}`);
+    } else {
+      console.error("An unknown error occurred");
+    }
+  }
+}
