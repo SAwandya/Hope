@@ -2,9 +2,23 @@
 
 import * as vscode from "vscode";
 import { uploadCode } from "./firebaseConfig";
+import { SidebarProvider } from "./sidebarProvider";
+import { UploadCodePanel } from "./uploadCodePanel";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Extension "my-extension" is now active!');
+
+  const sidebarProvider = new SidebarProvider();
+  vscode.window.createTreeView("mySidebar", {
+    treeDataProvider: sidebarProvider,
+  });
+
+  const uploadCodePanel = vscode.commands.registerCommand(
+    "extension.uploadCodePanel",
+    () => {
+      UploadCodePanel.createOrShow(context);
+    }
+  );
 
   let disposable = vscode.commands.registerCommand(
     "extension.uploadCode",
@@ -28,16 +42,16 @@ export function activate(context: vscode.ExtensionContext) {
         if (error instanceof Error) {
           vscode.window.showErrorMessage(
             `Error uploading code: ${error.message}`
-          )
-        }else {
-            vscode.window.showErrorMessage(
-            `An unkonwn error occurred`);
-          }
+          );
+        } else {
+          vscode.window.showErrorMessage(`An unkonwn error occurred`);
+        }
       }
     }
   );
 
-  context.subscriptions.push(disposable);
+ 
+  context.subscriptions.push(disposable, uploadCodePanel);
 
   // Optional: Add a status bar button
   let statusBar = vscode.window.createStatusBarItem(

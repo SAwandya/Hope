@@ -20,8 +20,29 @@
       {
         "command": "extension.uploadCode",
         "title": "Upload Code to Firebase"
+      },
+      {
+        "command": "extension.uploadCodePanel",
+        "title": "Open Upload Code Panel"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "mySidebar",
+          "name": "My Sidebar"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mySidebarContainer",
+          "title": "My Sidebar",
+          "icon": "resources/sidebar-icon.svg"
+        }
+      ]
+    },
     "statusBarItems": [
       {
         "command": "extension.uploadCode",
