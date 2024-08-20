@@ -140,6 +140,7 @@ function getWebviewContent(code: string): string {
           padding: 10px;
           border-radius: 5px;
           overflow-x: auto;
+          color: #2E073F
         }
       </style>
     </head>

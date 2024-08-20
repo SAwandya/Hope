@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { db } from "./firebaseConfig"; // Import your Firestore instance
-import { collection, onSnapshot, doc, getDoc } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 
 export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<SidebarItem | undefined> =
