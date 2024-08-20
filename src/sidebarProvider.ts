@@ -1,22 +1,63 @@
 import * as vscode from "vscode";
+import { db } from "./firebaseConfig"; // Import your Firestore instance
+import { collection, onSnapshot } from "firebase/firestore";
 
 export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<SidebarItem | undefined> =
     new vscode.EventEmitter<SidebarItem | undefined>();
+
   readonly onDidChangeTreeData: vscode.Event<SidebarItem | undefined> =
     this._onDidChangeTreeData.event;
+
+  private sessionId: string = "00002"; // Replace with your logic
+  private studentId: string = "IT22004777"; // Replace with your logic
+
+  private versionItems: SidebarItem[] = [];
+
+  constructor() {
+    this.setupRealtimeUpdates(); // Set up real-time updates when the class is initialized
+  }
 
   getTreeItem(element: SidebarItem): vscode.TreeItem {
     return element;
   }
 
-  getChildren(element?: SidebarItem): Thenable<SidebarItem[]> {
+  async getChildren(element?: SidebarItem): Promise<SidebarItem[]> {
     if (element === undefined) {
-      return Promise.resolve([
-        new SidebarItem("Upload Code", vscode.TreeItemCollapsibleState.None),
-      ]);
+      // Root level: list actions and versions
+      return [
+        new SidebarItem(
+          "Upload Code",
+          vscode.TreeItemCollapsibleState.None,
+          "extension.uploadCode"
+        ),
+        new SidebarItem(
+          "Open Webview",
+          vscode.TreeItemCollapsibleState.None,
+          "extension.openWebviewPanel"
+        ),
+        ...this.versionItems,
+      ];
     }
     return Promise.resolve([]);
+  }
+
+  private setupRealtimeUpdates() {
+    const versionCollectionRef = collection(
+      db,
+      `sessions/${this.sessionId}/students/${this.studentId}/codeVersions`
+    );
+
+    // Listen for real-time updates
+    onSnapshot(versionCollectionRef, (snapshot) => {
+      this.versionItems = snapshot.docs.map((doc) => {
+        return new SidebarItem(
+          `Version ${doc.id}`, // Display version names like "Version 1"
+          vscode.TreeItemCollapsibleState.None
+        );
+      });
+      this.refresh(); // Refresh the tree view when new data is available
+    });
   }
 
   refresh(): void {
@@ -27,12 +68,15 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
 class SidebarItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState
+    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    commandId?: string
   ) {
     super(label, collapsibleState);
-    this.command = {
-      command: "extension.uploadCode",
-      title: "Upload Code",
-    };
+    if (commandId) {
+      this.command = {
+        command: commandId,
+        title: label,
+      };
+    }
   }
 }

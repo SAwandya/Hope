@@ -21,6 +21,13 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const openWebviewPanelCommand = vscode.commands.registerCommand(
+    "extension.openWebviewPanel",
+    () => {
+      UploadCodePanel.createOrShow(context);
+    }
+  );
+
   let disposable = vscode.commands.registerCommand(
     "extension.uploadCode",
     async () => {
@@ -52,7 +59,11 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
  
-  context.subscriptions.push(disposable, openSidebarCommand);
+  context.subscriptions.push(
+    disposable,
+    openSidebarCommand,
+    openWebviewPanelCommand
+  );
 
   // Optional: Add a status bar button
   let statusBar = vscode.window.createStatusBarItem(

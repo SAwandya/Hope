@@ -13,7 +13,8 @@
   ],
   "activationEvents": [
     "onCommand:extension.openSidebar",
-    "onView:mySidebar"
+    "onView:mySidebar",
+    "onCommand:extension.openWebviewPanel"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -28,7 +29,7 @@
         {
           "id": "mySidebarContainer",
           "title": "My Sidebar",
-          "icon": "resources/activity-bar-icon.png" 
+          "icon": "resources/activity-bar-icon.png"
         }
       ]
     },
