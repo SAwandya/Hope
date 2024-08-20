@@ -4,15 +4,19 @@ import * as vscode from "vscode";
 import { uploadCode } from "./firebaseConfig";
 import { SidebarProvider } from "./sidebarProvider";
 import { UploadCodePanel } from "./uploadCodePanel";
+import { db } from "./firebaseConfig"; // Import your Firestore instance
+import { doc, getDoc } from "firebase/firestore";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Extension "my-extension" is now active!');
 
-  const sidebarProvider = new SidebarProvider();
+  // Initialize the SidebarProvider and create the tree view
+  const sidebarProvider = new SidebarProvider(context);
   vscode.window.createTreeView("mySidebar", {
     treeDataProvider: sidebarProvider,
   });
 
+  // Command to open the sidebar view
   const openSidebarCommand = vscode.commands.registerCommand(
     "extension.openSidebar",
     () => {
@@ -21,6 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Command to open the webview panel
   const openWebviewPanelCommand = vscode.commands.registerCommand(
     "extension.openWebviewPanel",
     () => {
@@ -28,7 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  let disposable = vscode.commands.registerCommand(
+  // Command to upload code
+  const uploadCodeCommand = vscode.commands.registerCommand(
     "extension.uploadCode",
     async () => {
       const editor = vscode.window.activeTextEditor;
@@ -45,6 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
         const message = await uploadCode(sessionId, studentId, code);
         if (message) {
           vscode.window.showInformationMessage(message);
+          sidebarProvider.refresh(); // Refresh the sidebar to reflect the new version
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -52,20 +59,57 @@ export function activate(context: vscode.ExtensionContext) {
             `Error uploading code: ${error.message}`
           );
         } else {
-          vscode.window.showErrorMessage(`An unkonwn error occurred`);
+          vscode.window.showErrorMessage(`An unknown error occurred`);
         }
       }
     }
   );
 
- 
-  context.subscriptions.push(
-    disposable,
-    openSidebarCommand,
-    openWebviewPanelCommand
+  // Command to open a specific version in a webview
+  const openVersionCommand = vscode.commands.registerCommand(
+    "extension.openVersion",
+    async (args: {
+      sessionId: string;
+      studentId: string;
+      versionId: string;
+    }) => {
+      const { sessionId, studentId, versionId } = args;
+
+      try {
+        const codeDocRef = doc(
+          db,
+          `sessions/${sessionId}/students/${studentId}/codeVersions/${versionId}`
+        );
+        const codeDoc = await getDoc(codeDocRef);
+        const code = codeDoc.exists() ? codeDoc.data()?.code : "Code not found";
+
+        const panel = vscode.window.createWebviewPanel(
+          "versionView", // Identifies the type of the webview
+          `Version ${versionId}`, // Title of the webview
+          vscode.ViewColumn.One, // Editor column to show the new webview panel in
+          {} // Webview options
+        );
+
+        panel.webview.html = getWebviewContent(code);
+      } catch (error) {
+        vscode.window.showErrorMessage(
+          `Error opening version: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
+      }
+    }
   );
 
-  // Optional: Add a status bar button
+  // Register commands and dispose them when deactivated
+  context.subscriptions.push(
+    openSidebarCommand,
+    openWebviewPanelCommand,
+    uploadCodeCommand,
+    openVersionCommand
+  );
+
+  // Optional: Add a status bar button to upload code
   let statusBar = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
     100
@@ -75,6 +119,36 @@ export function activate(context: vscode.ExtensionContext) {
   statusBar.show();
 
   context.subscriptions.push(statusBar);
+}
+
+// Function to get HTML content for the webview
+function getWebviewContent(code: string): string {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Code Version</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 10px;
+        }
+        pre {
+          background-color: #f4f4f4;
+          padding: 10px;
+          border-radius: 5px;
+          overflow-x: auto;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Code Version</h1>
+      <pre>${code}</pre>
+    </body>
+    </html>
+  `;
 }
 
 export function deactivate() {}

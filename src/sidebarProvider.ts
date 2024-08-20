@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { db } from "./firebaseConfig"; // Import your Firestore instance
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, doc, getDoc } from "firebase/firestore";
 
 export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<SidebarItem | undefined> =
@@ -14,7 +14,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
 
   private versionItems: SidebarItem[] = [];
 
-  constructor() {
+  constructor(private context: vscode.ExtensionContext) {
     this.setupRealtimeUpdates(); // Set up real-time updates when the class is initialized
   }
 
@@ -23,7 +23,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   }
 
   async getChildren(element?: SidebarItem): Promise<SidebarItem[]> {
-    if (element === undefined) {
+    if (!element) {
       // Root level: list actions and versions
       return [
         new SidebarItem(
@@ -39,7 +39,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
         ...this.versionItems,
       ];
     }
-    return Promise.resolve([]);
+    return [];
   }
 
   private setupRealtimeUpdates() {
@@ -53,7 +53,13 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
       this.versionItems = snapshot.docs.map((doc) => {
         return new SidebarItem(
           `Version ${doc.id}`, // Display version names like "Version 1"
-          vscode.TreeItemCollapsibleState.None
+          vscode.TreeItemCollapsibleState.None,
+          "extension.openVersion",
+          {
+            sessionId: this.sessionId,
+            studentId: this.studentId,
+            versionId: doc.id,
+          }
         );
       });
       this.refresh(); // Refresh the tree view when new data is available
@@ -69,13 +75,15 @@ class SidebarItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    commandId?: string
+    commandId?: string,
+    commandArgs?: any // Additional argument for the command
   ) {
     super(label, collapsibleState);
     if (commandId) {
       this.command = {
         command: commandId,
         title: label,
+        arguments: [commandArgs], // Pass the arguments to the command
       };
     }
   }
