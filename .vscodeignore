@@ -15,8 +15,6 @@
 .git/
 .gitignore
 
-# Exclude build artifacts
-out/
 
 # Exclude node_modules (if you have it locally)
 node_modules/
