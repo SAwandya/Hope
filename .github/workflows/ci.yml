@@ -3,10 +3,10 @@ name: CI/CD for VS Code Extension
 on:
   push:
     branches:
-      - main
+      - hope
   pull_request:
     branches:
-      - main
+      - hope
 
 jobs:
   build:
@@ -65,7 +65,7 @@ jobs:
     name: Publish Extension
     needs: package
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/hope'
 
     steps:
       - name: Checkout repository
