@@ -39,7 +39,7 @@ jobs:
       - name: Run Tests in Headless Mode
         run: |
           npm install -g @vscode/test-electron
-          vscode-test --headless --version=stable
+          npx vscode-test --headless --version=stable
 
   package:
     name: Package Extension
