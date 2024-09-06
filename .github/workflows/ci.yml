@@ -30,6 +30,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Install Xvfb
+        run: sudo apt-get install -y xvfb
+
+      - name: Start Xvfb
+        run: |
+          Xvfb :99 & export DISPLAY=:99
+
       - name: Run Lint
         run: npm run lint
 
@@ -51,7 +58,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: "18.x"
 
       - name: Install Dependencies
         run: npm install
@@ -74,7 +81,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: "18.x"
 
       - name: Install Dependencies
         run: npm install
