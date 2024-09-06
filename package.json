@@ -82,5 +82,10 @@
   },
   "dependencies": {
     "firebase": "^10.12.5"
-  }
+  },
+  "galleryBanner": {
+    "color": "#FFFFFF",
+    "theme": "dark"
+  },
+  "icon": "images/logo.png"
 }
