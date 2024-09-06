@@ -1,11 +1,23 @@
-.vscode/**
-.vscode-test/**
-src/**
-.gitignore
-.yarnrc
-vsc-extension-quickstart.md
-**/tsconfig.json
-**/.eslintrc.json
-**/*.map
+# Exclude TypeScript source files and maps
 **/*.ts
-**/.vscode-test.*
+**/*.map
+
+# Exclude test files and directories
+**/*.test.ts
+**/*.spec.ts
+**/test/
+
+# Exclude documentation files
+**/*.md
+
+# Exclude local configuration files and folders
+.vscode/
+.git/
+.gitignore
+
+# Exclude build artifacts
+out/
+
+# Exclude node_modules (if you have it locally)
+node_modules/
+
