@@ -1,0 +1,85 @@
+name: CI/CD for VS Code Extension
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and Test Extension
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Lint
+        run: npm run lint
+
+      - name: Compile Typescript
+        run: npm run compile
+
+      - name: Run Tests
+        run: npm test
+
+  package:
+    name: Package Extension
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Package Extension
+        run: |
+          npm install -g vsce
+          vsce package
+
+  publish:
+    name: Publish Extension
+    needs: package
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Publish Extension
+        run: |
+          npm install -g vsce
+          vsce publish -p ${{ secrets.VSCODE_TOKEN }}

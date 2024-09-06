@@ -136,11 +136,11 @@ function getWebviewContent(code: string): string {
           padding: 10px;
         }
         pre {
-          background-color: #f4f4f4;
+          background-color: #F8EDED;
           padding: 10px;
           border-radius: 5px;
           overflow-x: auto;
-          color: #2E073F
+          color: #173B45
         }
       </style>
     </head>
