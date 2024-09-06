@@ -3,7 +3,7 @@
   "displayName": "Hope",
   "description": "Customized version control system",
   "version": "0.0.1",
-  "publisher": "RatLabs",
+  "publisher": "samoraAI",
   "engines": {
     "vscode": "^1.92.0"
   },
