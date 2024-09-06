@@ -2,10 +2,10 @@
 **/*.ts
 **/*.map
 
-# Exclude test files and directories
-**/*.test.ts
-**/*.spec.ts
-**/test/
+# # Exclude test files and directories
+# **/*.test.ts
+# **/*.spec.ts
+# **/test/
 
 # Exclude documentation files
 **/*.md
