@@ -64,6 +64,10 @@
     "lint": "eslint src --ext ts",
     "test": "vscode-test --headless"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SAwandya/Hope"
+  },
   "devDependencies": {
     "@types/firebase": "^3.2.1",
     "@types/mocha": "^10.0.7",
