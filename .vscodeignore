@@ -1,11 +1,5 @@
-# Exclude TypeScript source files and maps
-**/*.ts
-**/*.map
 
-# # Exclude test files and directories
-# **/*.test.ts
-# **/*.spec.ts
-# **/test/
+**/*.map
 
 # Exclude documentation files
 **/*.md

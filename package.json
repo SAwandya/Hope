@@ -2,7 +2,7 @@
   "name": "hope",
   "displayName": "Hope",
   "description": "Customized version control system",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "samoraAI",
   "engines": {
     "vscode": "^1.92.0"
