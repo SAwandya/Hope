@@ -62,7 +62,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "vscode-test"
+    "test": "vscode-test --headless"
   },
   "devDependencies": {
     "@types/firebase": "^3.2.1",
