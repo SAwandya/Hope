@@ -9,8 +9,8 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   readonly onDidChangeTreeData: vscode.Event<SidebarItem | undefined> =
     this._onDidChangeTreeData.event;
 
-  private sessionId: string = "00002"; // Replace with your logic
-  private studentId: string = "IT22004777"; // Replace with your logic
+  private sessionId: string = "00002"; 
+  private studentId: string = "IT22004777"; 
 
   private versionItems: SidebarItem[] = [];
 
