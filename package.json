@@ -2,7 +2,7 @@
   "name": "hope",
   "displayName": "Hope",
   "description": "Customized version control system",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "samoraAI",
   "engines": {
     "vscode": "^1.92.0"
@@ -81,6 +81,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "bootstrap": "^5.3.3",
     "firebase": "^10.12.5"
   },
   "galleryBanner": {

@@ -12,7 +12,7 @@ import {
 
 import { FirebaseApp } from "@firebase/app-types";
 
-// Your Firebase configuration
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyD8XrgPikkM1h29FHkqA4RRMPzFFnpSCEk",
   authDomain: "hope-d24b7.firebaseapp.com",
