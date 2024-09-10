@@ -40,7 +40,8 @@ export async function getCurrentVersion(sessionId: string, studentId: string) {
 export async function uploadCode(
   sessionId: string,
   studentId: string,
-  code: string
+  code: string,
+  commitMessage: string
 ) {
   try {
     const currentVersion = await getCurrentVersion(sessionId, studentId);
@@ -51,16 +52,15 @@ export async function uploadCode(
 
     await setDoc(codeVersionRef, {
       code: code,
+      commitMessage: commitMessage, // Store commit message
       timestamp: serverTimestamp(),
     });
 
-    return `Code uploaded successfully as version ${currentVersion}`;
+    return `Code uploaded successfully as version ${currentVersion} with commit message: "${commitMessage}"`;
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
-    } else {
-      console.error("An unknown error occurred");
-    }
+    throw new Error(
+      `Failed to upload code: ${error instanceof Error ? error.message : error}`
+    );
   }
 }
 

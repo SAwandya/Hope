@@ -5,7 +5,7 @@ import { uploadCode } from "./firebaseConfig";
 import { SidebarProvider } from "./sidebarProvider";
 import { UploadCodePanel } from "./uploadCodePanel";
 import { db } from "./firebaseConfig"; // Import your Firestore instance
-import { doc, getDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc } from "firebase/firestore";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Extension "my-extension" is now active!');
@@ -22,6 +22,25 @@ export function activate(context: vscode.ExtensionContext) {
     () => {
       vscode.commands.executeCommand("workbench.view.explorer"); // This opens the Explorer view by default
       // To focus on the custom sidebar view, additional steps may be needed depending on your setup
+    }
+  );
+
+  // Command to prompt for commit message
+  const enterCommitMessageCommand = vscode.commands.registerCommand(
+    "extension.enterCommitMessage",
+    async () => {
+      const commitMessage = await vscode.window.showInputBox({
+        placeHolder: "Enter your commit message",
+        prompt: "Please enter the commit message for this version.",
+      });
+      if (commitMessage) {
+        sidebarProvider.setCommitMessage(commitMessage);
+        vscode.window.showInformationMessage(
+          `Commit message set: ${commitMessage}`
+        );
+      } else {
+        vscode.window.showWarningMessage("No commit message entered.");
+      }
     }
   );
 
@@ -46,9 +65,22 @@ export function activate(context: vscode.ExtensionContext) {
       const code = editor.document.getText();
       const sessionId = "00002"; // Replace with actual session ID logic
       const studentId = "IT22004777"; // Replace with actual student ID logic
+      const commitMessage = sidebarProvider.getCommitMessage(); // Retrieve the commit message
+
+      if (!commitMessage) {
+        vscode.window.showWarningMessage(
+          "Please enter a commit message before uploading."
+        );
+        return;
+      }
 
       try {
-        const message = await uploadCode(sessionId, studentId, code);
+        const message = await uploadCode(
+          sessionId,
+          studentId,
+          code,
+          commitMessage
+        );
         if (message) {
           vscode.window.showInformationMessage(message);
           sidebarProvider.refresh(); // Refresh the sidebar to reflect the new version
@@ -87,10 +119,36 @@ export function activate(context: vscode.ExtensionContext) {
           "versionView", // Identifies the type of the webview
           `Version ${versionId}`, // Title of the webview
           vscode.ViewColumn.One, // Editor column to show the new webview panel in
-          {} // Webview options
+          {
+            enableScripts: true, // Enable JS in the webview
+          }
         );
 
         panel.webview.html = getWebviewContent(code);
+
+        // Handle messages from the webview
+        panel.webview.onDidReceiveMessage(
+          async (message) => {
+            if (message.command === "deleteVersion") {
+              // Delete the specific version from Firestore
+              try {
+                await deleteDoc(codeDocRef);
+                vscode.window.showInformationMessage(message.text);
+
+                // Close the webview panel after deletion
+                panel.dispose();
+              } catch (error) {
+                vscode.window.showErrorMessage(
+                  `Failed to delete version: ${
+                    error instanceof Error ? error.message : "Unknown error"
+                  }`
+                );
+              }
+            }
+          },
+          undefined,
+          context.subscriptions
+        );
       } catch (error) {
         vscode.window.showErrorMessage(
           `Error opening version: ${
@@ -106,7 +164,8 @@ export function activate(context: vscode.ExtensionContext) {
     openSidebarCommand,
     openWebviewPanelCommand,
     uploadCodeCommand,
-    openVersionCommand
+    openVersionCommand,
+    enterCommitMessageCommand
   );
 
   // Optional: Add a status bar button to upload code
@@ -134,10 +193,9 @@ function getWebviewContent(code: string): string {
         body {
           font-family: Arial, sans-serif;
           padding: 10px;
-          background-color: #2E236C;
         }
         pre {
-          background-color: #4B70F5;
+          background-color: #021526;
           padding: 10px;
           border-radius: 5px;
           overflow-x: auto;
@@ -151,11 +209,25 @@ function getWebviewContent(code: string): string {
       <h1>Code Version</h1>
        <div class="container-fluid mt-4">
             <pre><code>${code}</code></pre>
-            <button type="button" class="btn btn-danger">Delete</button>
-      </div>
+            <button id="deleteButton" type="button" class="btn btn-danger">Delete</button>
+       </div>
+       
+       <script>
+         const vscode = acquireVsCodeApi();
+
+         // Add event listener to the delete button
+         document.getElementById('deleteButton').addEventListener('click', () => {
+           // Send message to the VS Code extension
+           vscode.postMessage({
+             command: 'deleteVersion',
+             text: 'Code version deleted successfully!'
+           });
+         });
+       </script>
     </body>
     </html>
   `;
 }
+
 
 export function deactivate() {}

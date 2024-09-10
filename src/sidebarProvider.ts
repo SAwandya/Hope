@@ -9,10 +9,11 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   readonly onDidChangeTreeData: vscode.Event<SidebarItem | undefined> =
     this._onDidChangeTreeData.event;
 
-  private sessionId: string = "00002"; 
-  private studentId: string = "IT22004777"; 
+  private sessionId: string = "00002";
+  private studentId: string = "IT22004777";
 
   private versionItems: SidebarItem[] = [];
+  private commitMessage: string = ""; // Add a commit message field
 
   constructor(private context: vscode.ExtensionContext) {
     this.setupRealtimeUpdates(); // Set up real-time updates when the class is initialized
@@ -26,6 +27,11 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
     if (!element) {
       // Root level: list actions and versions
       return [
+        new SidebarItem(
+          "Enter Commit Message",
+          vscode.TreeItemCollapsibleState.None,
+          "extension.enterCommitMessage"
+        ),
         new SidebarItem(
           "Upload Code",
           vscode.TreeItemCollapsibleState.None,
@@ -68,6 +74,14 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
 
   refresh(): void {
     this._onDidChangeTreeData.fire(undefined);
+  }
+
+  setCommitMessage(message: string): void {
+    this.commitMessage = message;
+  }
+
+  getCommitMessage(): string {
+    return this.commitMessage;
   }
 }
 
