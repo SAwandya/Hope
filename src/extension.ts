@@ -25,6 +25,25 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Command to prompt for commit message
+  const enterCommitMessageCommand = vscode.commands.registerCommand(
+    "extension.enterCommitMessage",
+    async () => {
+      const commitMessage = await vscode.window.showInputBox({
+        placeHolder: "Enter your commit message",
+        prompt: "Please enter the commit message for this version.",
+      });
+      if (commitMessage) {
+        sidebarProvider.setCommitMessage(commitMessage);
+        vscode.window.showInformationMessage(
+          `Commit message set: ${commitMessage}`
+        );
+      } else {
+        vscode.window.showWarningMessage("No commit message entered.");
+      }
+    }
+  );
+
   // Command to open the webview panel
   const openWebviewPanelCommand = vscode.commands.registerCommand(
     "extension.openWebviewPanel",
@@ -46,9 +65,22 @@ export function activate(context: vscode.ExtensionContext) {
       const code = editor.document.getText();
       const sessionId = "00002"; // Replace with actual session ID logic
       const studentId = "IT22004777"; // Replace with actual student ID logic
+      const commitMessage = sidebarProvider.getCommitMessage(); // Retrieve the commit message
+
+      if (!commitMessage) {
+        vscode.window.showWarningMessage(
+          "Please enter a commit message before uploading."
+        );
+        return;
+      }
 
       try {
-        const message = await uploadCode(sessionId, studentId, code);
+        const message = await uploadCode(
+          sessionId,
+          studentId,
+          code,
+          commitMessage
+        );
         if (message) {
           vscode.window.showInformationMessage(message);
           sidebarProvider.refresh(); // Refresh the sidebar to reflect the new version
@@ -64,7 +96,6 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   );
-
 
   // Command to open a specific version in a webview
   const openVersionCommand = vscode.commands.registerCommand(
@@ -128,13 +159,13 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-
   // Register commands and dispose them when deactivated
   context.subscriptions.push(
     openSidebarCommand,
     openWebviewPanelCommand,
     uploadCodeCommand,
-    openVersionCommand
+    openVersionCommand,
+    enterCommitMessageCommand
   );
 
   // Optional: Add a status bar button to upload code
