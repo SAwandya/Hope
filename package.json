@@ -2,15 +2,16 @@
   "name": "hope",
   "displayName": "Hope",
   "description": "Customized version control system",
-  "version": "0.0.8",
+  "version": "1.0.0",
   "publisher": "samoraAI",
   "engines": {
     "vscode": "^1.92.0"
   },
-  "enableProposedApi": false,
+  "enabledApiProposals": [],
   "categories": [
     "Other"
   ],
+  "main": "./out/extension.js",
   "activationEvents": [
     "onCommand:extension.openSidebar",
     "onView:mySidebar",
@@ -18,7 +19,6 @@
     "onCommand:extension.openWebviewPanel",
     "onCommand:extension.openVersion"
   ],
-  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
