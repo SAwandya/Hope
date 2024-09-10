@@ -7,12 +7,13 @@
   "engines": {
     "vscode": "^1.92.0"
   },
-  "enabledApiProposals": [],
+  "enabledApiProposals": false,
   "categories": [
     "Other"
   ],
+  
   "main": "./out/extension.js",
-  "activationEvents": [
+   "activationEvents": [
     "onCommand:extension.openSidebar",
     "onView:mySidebar",
     "onCommand:extension.uploadCode",
