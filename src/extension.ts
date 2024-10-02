@@ -14,8 +14,19 @@ function getCommandLineArgument(argName: string): string | undefined {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  const sessionId = getCommandLineArgument("sessionId");
-  const studentId = getCommandLineArgument("studentId");
+
+  const sessionId = vscode.workspace.getConfiguration().get("sessionId") as
+    | string
+    | undefined;
+  const studentId = vscode.workspace.getConfiguration().get("studentId") as
+    | string
+    | undefined;
+
+    vscode.window.showWarningMessage("Session ID: " + sessionId + " Student ID: " + studentId);
+
+
+  // const sessionId = getCommandLineArgument("sessionId");
+  // const studentId = getCommandLineArgument("studentId");
 
   if (sessionId && studentId) {
     vscode.window.showInformationMessage(
