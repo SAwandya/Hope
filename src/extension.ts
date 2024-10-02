@@ -7,7 +7,28 @@ import { UploadCodePanel } from "./uploadCodePanel";
 import { db } from "./firebaseConfig"; // Import your Firestore instance
 import { deleteDoc, doc, getDoc } from "firebase/firestore";
 
+function getCommandLineArgument(argName: string): string | undefined {
+  const args = process.argv.slice(2);
+  const arg = args.find((arg) => arg.startsWith(`${argName}=`));
+  return arg ? arg.split("=")[1] : undefined;
+}
+
 export function activate(context: vscode.ExtensionContext) {
+  const sessionId = getCommandLineArgument("sessionId");
+  const studentId = getCommandLineArgument("studentId");
+
+  if (sessionId && studentId) {
+    vscode.window.showInformationMessage(
+      `Session ID: ${sessionId}, Student ID: ${studentId}`
+    );
+
+    // Store sessionId and studentId in global state
+    context.globalState.update("sessionId", sessionId);
+    context.globalState.update("studentId", studentId);
+  } else {
+    vscode.window.showWarningMessage("No sessionId or studentId provided.");
+  }
+
   console.log('Extension "my-extension" is now active!');
 
   // Initialize the SidebarProvider and create the tree view
@@ -63,8 +84,9 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       const code = editor.document.getText();
-      const sessionId = "00002"; // Replace with actual session ID logic
-      const studentId = "IT22004777"; // Replace with actual student ID logic
+      const sessionId = context.globalState.get("sessionId") as string;
+      const studentId = context.globalState.get("studentId") as string;
+
       const commitMessage = sidebarProvider.getCommitMessage(); // Retrieve the commit message
 
       if (!commitMessage) {
@@ -228,6 +250,5 @@ function getWebviewContent(code: string): string {
     </html>
   `;
 }
-
 
 export function deactivate() {}

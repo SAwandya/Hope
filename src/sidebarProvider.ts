@@ -9,9 +9,6 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   readonly onDidChangeTreeData: vscode.Event<SidebarItem | undefined> =
     this._onDidChangeTreeData.event;
 
-  private sessionId: string = "00002";
-  private studentId: string = "IT22004777";
-
   private versionItems: SidebarItem[] = [];
   private commitMessage: string = ""; // Add a commit message field
 
@@ -49,9 +46,13 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   }
 
   private setupRealtimeUpdates() {
+
+    const sessionId = this.context.globalState.get<string>("sessionId");
+    const studentId = this.context.globalState.get<string>("studentId");
+
     const versionCollectionRef = collection(
       db,
-      `sessions/${this.sessionId}/students/${this.studentId}/codeVersions`
+      `sessions/${sessionId}/students/${studentId}/codeVersions`
     );
 
     // Listen for real-time updates
@@ -62,8 +63,8 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
           vscode.TreeItemCollapsibleState.None,
           "extension.openVersion",
           {
-            sessionId: this.sessionId,
-            studentId: this.studentId,
+            sessionId: sessionId,
+            studentId: studentId,
             versionId: doc.id,
           }
         );
