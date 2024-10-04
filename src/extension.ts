@@ -9,22 +9,43 @@ import { deleteDoc, doc, getDoc } from "firebase/firestore";
 
 
 export function activate(context: vscode.ExtensionContext) {
+  let sessionId = context.globalState.get("sessionId") as string;
+  let studentId = context.globalState.get("studentId") as string;
 
-  vscode.window.registerUriHandler({
-    handleUri(uri: vscode.Uri) {
-      const query = new URLSearchParams(uri.query);
-      const sessionId = query.get("sessionId");
-      const studentId = query.get("studentId");
-      vscode.window.showInformationMessage(
-        `Session ID: ${sessionId}, Student ID: ${studentId}`
-      );
+  // Log sessionId and studentId when the extension activates
+  console.log(`Extension "my-extension" is now active!`);
+  console.log(`Session ID: ${sessionId}, Student ID: ${studentId}`);
 
-      // Now you can pass these to your extension logic
-    },
-  });
+   vscode.window.registerUriHandler({
+     handleUri(uri: vscode.Uri) {
+       console.log(`Received URI: ${uri.toString()}`);
+       const query = new URLSearchParams(uri.query);
 
+       // Get sessionId and studentId from the URI
+       const newSessionId = query.get("sessionId");
+       const newStudentId = query.get("studentId");
 
-  console.log('Extension "my-extension" is now active!');
+       // Update global state
+       if (newSessionId) {
+         sessionId = newSessionId;
+         context.globalState.update("sessionId", sessionId);
+       }
+       if (newStudentId) {
+         studentId = newStudentId;
+         context.globalState.update("studentId", studentId);
+       }
+
+       vscode.window.showInformationMessage(
+         `Session ID: ${sessionId}, Student ID: ${studentId}`
+       );
+
+       // Log updated values
+       console.log(
+         `Updated Session ID: ${sessionId}, Student ID: ${studentId}`
+       );
+     },
+   });
+
 
   // Initialize the SidebarProvider and create the tree view
   const sidebarProvider = new SidebarProvider(context);
@@ -47,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       const commitMessage = await vscode.window.showInputBox({
         placeHolder: "Enter your commit message",
-        prompt: "Please enter the commit message for this version.",
+        prompt: `Please enter the commit message for this version.\nSession ID: ${sessionId}\nStudent ID: ${studentId}`, // Updated prompt message
       });
       if (commitMessage) {
         sidebarProvider.setCommitMessage(commitMessage);
@@ -86,7 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (!commitMessage) {
         vscode.window.showWarningMessage(
-          "Please enter a commit message before uploading."
+          `Please enter a commit message before uploading studentId: ${studentId} sessionID: ${sessionId}`
         );
         return;
       }
