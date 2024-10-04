@@ -2,7 +2,7 @@
   "name": "hope",
   "displayName": "Hope",
   "description": "Customized version control system",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "samoraAI",
   "engines": {
     "vscode": "^1.92.0"
@@ -11,14 +11,15 @@
   "categories": [
     "Other"
   ],
-  
   "main": "./out/extension.js",
-   "activationEvents": [
+  "activationEvents": [
     "onCommand:extension.openSidebar",
     "onView:mySidebar",
     "onCommand:extension.uploadCode",
     "onCommand:extension.openWebviewPanel",
-    "onCommand:extension.openVersion"
+    "onCommand:extension.openVersion",
+    "onCommand:your-extension-id.command",
+    "onUri"
   ],
   "contributes": {
     "commands": [
@@ -37,6 +38,10 @@
       {
         "command": "extension.openVersion",
         "title": "Open Version"
+      },
+      {
+        "command": "your-extension-id.command",
+        "title": "Handle Custom URL"
       }
     ],
     "viewsContainers": {

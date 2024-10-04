@@ -7,38 +7,22 @@ import { UploadCodePanel } from "./uploadCodePanel";
 import { db } from "./firebaseConfig"; // Import your Firestore instance
 import { deleteDoc, doc, getDoc } from "firebase/firestore";
 
-function getCommandLineArgument(argName: string): string | undefined {
-  const args = process.argv.slice(2);
-  const arg = args.find((arg) => arg.startsWith(`${argName}=`));
-  return arg ? arg.split("=")[1] : undefined;
-}
 
 export function activate(context: vscode.ExtensionContext) {
 
-  const sessionId = vscode.workspace.getConfiguration().get("sessionId") as
-    | string
-    | undefined;
-  const studentId = vscode.workspace.getConfiguration().get("studentId") as
-    | string
-    | undefined;
+  vscode.window.registerUriHandler({
+    handleUri(uri: vscode.Uri) {
+      const query = new URLSearchParams(uri.query);
+      const sessionId = query.get("sessionId");
+      const studentId = query.get("studentId");
+      vscode.window.showInformationMessage(
+        `Session ID: ${sessionId}, Student ID: ${studentId}`
+      );
 
-    vscode.window.showWarningMessage("Session ID: " + sessionId + " Student ID: " + studentId);
+      // Now you can pass these to your extension logic
+    },
+  });
 
-
-  // const sessionId = getCommandLineArgument("sessionId");
-  // const studentId = getCommandLineArgument("studentId");
-
-  if (sessionId && studentId) {
-    vscode.window.showInformationMessage(
-      `Session ID: ${sessionId}, Student ID: ${studentId}`
-    );
-
-    // Store sessionId and studentId in global state
-    context.globalState.update("sessionId", sessionId);
-    context.globalState.update("studentId", studentId);
-  } else {
-    vscode.window.showWarningMessage("No sessionId or studentId provided.");
-  }
 
   console.log('Extension "my-extension" is now active!');
 
