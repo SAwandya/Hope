@@ -97,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
   const openWebviewPanelCommand = vscode.commands.registerCommand(
     "extension.openWebviewPanel",
     () => {
-      UploadCodePanel.createOrShow(context);
+      UploadCodePanel.createOrShow(context, studentId);
     }
   );
 
@@ -176,29 +176,61 @@ export function activate(context: vscode.ExtensionContext) {
 
         panel.webview.html = getWebviewContent(code);
 
-        // Handle messages from the webview
-        panel.webview.onDidReceiveMessage(
-          async (message) => {
-            if (message.command === "deleteVersion") {
-              // Delete the specific version from Firestore
-              try {
-                await deleteDoc(codeDocRef);
-                vscode.window.showInformationMessage(message.text);
+       panel.webview.onDidReceiveMessage(
+         async (message) => {
+           if (message.command === "deleteVersion") {
+             // Delete the specific version from Firestore
+             try {
+               await deleteDoc(codeDocRef);
+               vscode.window.showInformationMessage(message.text);
+               panel.dispose(); // Close the webview panel after deletion
+             } catch (error) {
+               vscode.window.showErrorMessage(
+                 `Failed to delete version: ${
+                   error instanceof Error ? error.message : "Unknown error"
+                 }`
+               );
+             }
+           }
 
-                // Close the webview panel after deletion
-                panel.dispose();
-              } catch (error) {
-                vscode.window.showErrorMessage(
-                  `Failed to delete version: ${
-                    error instanceof Error ? error.message : "Unknown error"
-                  }`
-                );
-              }
-            }
-          },
-          undefined,
-          context.subscriptions
-        );
+           if (message.command === "loadInWorkspace") {
+             const code = message.code;
+             const tempWorkspacePath = vscode.Uri.file(
+               `${require("os").tmpdir()}/tempWorkspace`
+             );
+
+             try {
+               // Create the new workspace folder and code file
+               await vscode.workspace.fs.createDirectory(tempWorkspacePath);
+
+               const fileUri = vscode.Uri.joinPath(
+                 tempWorkspacePath,
+                 "versionCode.js"
+               );
+               await vscode.workspace.fs.writeFile(
+                 fileUri,
+                 Buffer.from(code, "utf8")
+               );
+
+               // Open the new workspace
+               await vscode.commands.executeCommand(
+                 "vscode.openFolder",
+                 tempWorkspacePath,
+                 true
+               );
+             } catch (error) {
+               vscode.window.showErrorMessage(
+                 `Error loading code into workspace: ${
+                   error instanceof Error ? error.message : "Unknown error"
+                 }`
+               );
+             }
+           }
+         },
+         undefined,
+         context.subscriptions
+       );
+
       } catch (error) {
         vscode.window.showErrorMessage(
           `Error opening version: ${
@@ -230,7 +262,6 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(statusBar);
 }
 
-// Function to get HTML content for the webview
 function getWebviewContent(code: string): string {
   return `
     <!DOCTYPE html>
@@ -260,6 +291,7 @@ function getWebviewContent(code: string): string {
        <div class="container-fluid mt-4">
             <pre><code>${code}</code></pre>
             <button id="deleteButton" type="button" class="btn btn-danger">Delete</button>
+            <button id="loadWorkspaceButton" type="button" class="btn btn-primary mt-2">Load in New Workspace</button>
        </div>
        
        <script>
@@ -267,10 +299,17 @@ function getWebviewContent(code: string): string {
 
          // Add event listener to the delete button
          document.getElementById('deleteButton').addEventListener('click', () => {
-           // Send message to the VS Code extension
            vscode.postMessage({
              command: 'deleteVersion',
              text: 'Code version deleted successfully!'
+           });
+         });
+
+         // Add event listener to the load workspace button
+         document.getElementById('loadWorkspaceButton').addEventListener('click', () => {
+           vscode.postMessage({
+             command: 'loadInWorkspace',
+             code: \`${code}\`
            });
          });
        </script>

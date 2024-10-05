@@ -1,9 +1,17 @@
+// uploadCodePanel.ts
+
 import * as vscode from "vscode";
+import { getAllSessions } from "./firebaseConfig";
 
 export class UploadCodePanel {
   public static currentPanel: UploadCodePanel | undefined;
+  private readonly panel: vscode.WebviewPanel;
+  private readonly context: vscode.ExtensionContext;
 
-  public static createOrShow(context: vscode.ExtensionContext) {
+  public static async createOrShow(
+    context: vscode.ExtensionContext,
+    studentId: string
+  ) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
@@ -18,12 +26,10 @@ export class UploadCodePanel {
         {}
       );
 
-      UploadCodePanel.currentPanel = new UploadCodePanel(panel, context);
+      const uploadCodePanel = new UploadCodePanel(panel, context);
+      await uploadCodePanel.updateWebview(studentId);
     }
   }
-
-  private readonly panel: vscode.WebviewPanel;
-  private readonly context: vscode.ExtensionContext;
 
   private constructor(
     panel: vscode.WebviewPanel,
@@ -32,14 +38,24 @@ export class UploadCodePanel {
     this.panel = panel;
     this.context = context;
 
-    this.panel.webview.html = this.getWebviewContent();
-
     this.panel.onDidDispose(() => {
       UploadCodePanel.currentPanel = undefined;
     });
   }
 
-  private getWebviewContent(): string {
+  // Fetch and display sessions
+  private async updateWebview(studentId: string) {
+    const sessions = await getAllSessions(studentId);
+    this.panel.webview.html = this.getWebviewContent(sessions);
+  }
+
+  // Generate HTML content for webview
+  private getWebviewContent(sessions: any[]): string {
+    let sessionListHtml = "";
+    sessions.forEach((session) => {
+      sessionListHtml += `<li>Session ID: ${session.sessionId}</li>`;
+    });
+
     return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -48,6 +64,10 @@ export class UploadCodePanel {
     </head>
     <body>
       <h1>Upload Code</h1>
+      <h2>Sessions</h2>
+      <ul>
+        ${sessionListHtml}
+      </ul>
       <button id="uploadButton">Upload Code</button>
       <script>
         const vscode = acquireVsCodeApi();

@@ -8,6 +8,8 @@ import {
   setDoc,
   serverTimestamp,
   getDocs,
+  query,
+  where,
 } from "firebase/firestore";
 
 import { FirebaseApp } from "@firebase/app-types";
@@ -26,6 +28,22 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// Fetch all sessions related to a specific student
+export async function getAllSessions(studentId: string) {
+  const sessions: any = [];
+  const sessionCollectionRef = collection(db, `sessions`);
+  const sessionSnapshot = await getDocs(sessionCollectionRef);
+
+  sessionSnapshot.forEach((doc) => {
+    const sessionData = doc.data();
+    if (sessionData.students && sessionData.students[studentId]) {
+      sessions.push({ sessionId: doc.id, ...sessionData });
+    }
+  });
+
+  return sessions;
+}
 
 export async function getCurrentVersion(sessionId: string, studentId: string) {
   const versionCollectionRef = collection(
