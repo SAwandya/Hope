@@ -7,6 +7,7 @@ import { UploadCodePanel } from "./uploadCodePanel";
 import { db } from "./firebaseConfig"; // Import your Firestore instance
 import { deleteDoc, doc, getDoc } from "firebase/firestore";
 
+let sidebarProvider: SidebarProvider | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
   let sessionId = context.globalState.get("sessionId") as string;
@@ -16,35 +17,46 @@ export function activate(context: vscode.ExtensionContext) {
   console.log(`Extension "my-extension" is now active!`);
   console.log(`Session ID: ${sessionId}, Student ID: ${studentId}`);
 
-   vscode.window.registerUriHandler({
-     handleUri(uri: vscode.Uri) {
-       console.log(`Received URI: ${uri.toString()}`);
-       const query = new URLSearchParams(uri.query);
+  vscode.window.registerUriHandler({
+    handleUri(uri: vscode.Uri) {
+      console.log(`Received URI: ${uri.toString()}`);
+      const query = new URLSearchParams(uri.query);
 
-       // Get sessionId and studentId from the URI
-       const newSessionId = query.get("sessionId");
-       const newStudentId = query.get("studentId");
+      // Get sessionId and studentId from the URI
+      const newSessionId = query.get("sessionId");
+      const newStudentId = query.get("studentId");
 
-       // Update global state
-       if (newSessionId) {
-         sessionId = newSessionId;
-         context.globalState.update("sessionId", sessionId);
+      if (newSessionId && newStudentId) {
+        // Update the sessionId and studentId in the SidebarProvider
+        sidebarProvider.updateSessionStudent(newSessionId, newStudentId);
+
+        vscode.window.showInformationMessage(
+          `Updated Session ID: ${newSessionId}, Student ID: ${newStudentId}`
+        );
+      }
+
+      // Update global state
+      if (newSessionId) {
+        sessionId = newSessionId;
+        context.globalState.update("sessionId", sessionId);
+      }
+      if (newStudentId) {
+        studentId = newStudentId;
+        context.globalState.update("studentId", studentId);
+      }
+
+      vscode.window.showInformationMessage(
+        `Session ID: ${sessionId}, Student ID: ${studentId}`
+      );
+
+      // Log updated values
+      console.log(`Updated Session ID: ${sessionId}, Student ID: ${studentId}`);
+
+       if (sidebarProvider) {
+         sidebarProvider.refresh();
        }
-       if (newStudentId) {
-         studentId = newStudentId;
-         context.globalState.update("studentId", studentId);
-       }
-
-       vscode.window.showInformationMessage(
-         `Session ID: ${sessionId}, Student ID: ${studentId}`
-       );
-
-       // Log updated values
-       console.log(
-         `Updated Session ID: ${sessionId}, Student ID: ${studentId}`
-       );
-     },
-   });
+    },
+  });
 
 
   // Initialize the SidebarProvider and create the tree view
