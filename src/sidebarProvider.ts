@@ -1,16 +1,16 @@
 import * as vscode from "vscode";
 import { db } from "./firebaseConfig"; // Import your Firestore instance
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, Unsubscribe } from "firebase/firestore";
 
 export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<SidebarItem | undefined> =
     new vscode.EventEmitter<SidebarItem | undefined>();
-
   readonly onDidChangeTreeData: vscode.Event<SidebarItem | undefined> =
     this._onDidChangeTreeData.event;
 
   private versionItems: SidebarItem[] = [];
   private commitMessage: string = ""; // Add a commit message field
+  private unsubscribeFirestoreListener: Unsubscribe | null = null;
 
   constructor(private context: vscode.ExtensionContext) {
     this.setupRealtimeUpdates(); // Set up real-time updates when the class is initialized
@@ -46,31 +46,50 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
   }
 
   private setupRealtimeUpdates() {
+    // Retrieve the sessionId and studentId from the global state
+    let sessionId = this.context.globalState.get<string>("sessionId");
+    let studentId = this.context.globalState.get<string>("studentId");
 
-    const sessionId = this.context.globalState.get<string>("sessionId");
-    const studentId = this.context.globalState.get<string>("studentId");
+    if (this.unsubscribeFirestoreListener) {
+      // Unsubscribe from previous Firestore listener if already set
+      this.unsubscribeFirestoreListener();
+    }
+
+    if (!sessionId || !studentId) {
+      return;
+    }
 
     const versionCollectionRef = collection(
       db,
       `sessions/${sessionId}/students/${studentId}/codeVersions`
     );
 
-    // Listen for real-time updates
-    onSnapshot(versionCollectionRef, (snapshot) => {
-      this.versionItems = snapshot.docs.map((doc) => {
-        return new SidebarItem(
-          `Version ${doc.id}`, // Display version names like "Version 1"
-          vscode.TreeItemCollapsibleState.None,
-          "extension.openVersion",
-          {
-            sessionId: sessionId,
-            studentId: studentId,
-            versionId: doc.id,
-          }
-        );
-      });
-      this.refresh(); // Refresh the tree view when new data is available
-    });
+    // Set up real-time listener on Firestore collection
+    this.unsubscribeFirestoreListener = onSnapshot(
+      versionCollectionRef,
+      (snapshot) => {
+        this.versionItems = snapshot.docs.map((doc) => {
+          return new SidebarItem(
+            `Version ${doc.id}`, // Display version names like "Version 1"
+            vscode.TreeItemCollapsibleState.None,
+            "extension.openVersion",
+            {
+              sessionId: sessionId,
+              studentId: studentId,
+              versionId: doc.id,
+            }
+          );
+        });
+        this.refresh(); // Refresh the tree view when new data is available
+      }
+    );
+  }
+
+  // This function is called when sessionId and studentId change
+  public updateSessionStudent(sessionId: string, studentId: string) {
+    this.context.globalState.update("sessionId", sessionId);
+    this.context.globalState.update("studentId", studentId);
+    this.setupRealtimeUpdates(); // Re-setup Firestore listener with new values
   }
 
   refresh(): void {
