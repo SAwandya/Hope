@@ -179,11 +179,13 @@ export function activate(context: vscode.ExtensionContext) {
        panel.webview.onDidReceiveMessage(
          async (message) => {
            if (message.command === "deleteVersion") {
-             // Delete the specific version from Firestore
+             // Handle delete version
              try {
                await deleteDoc(codeDocRef);
                vscode.window.showInformationMessage(message.text);
-               panel.dispose(); // Close the webview panel after deletion
+
+               // Close the webview panel after deletion
+               panel.dispose();
              } catch (error) {
                vscode.window.showErrorMessage(
                  `Failed to delete version: ${
@@ -193,34 +195,18 @@ export function activate(context: vscode.ExtensionContext) {
              }
            }
 
-           if (message.command === "loadInWorkspace") {
-             const code = message.code;
-             const tempWorkspacePath = vscode.Uri.file(
-               `${require("os").tmpdir()}/tempWorkspace`
-             );
-
+           if (message.command === "loadInEditor") {
+             // Open a new untitled text editor and load the code
              try {
-               // Create the new workspace folder and code file
-               await vscode.workspace.fs.createDirectory(tempWorkspacePath);
-
-               const fileUri = vscode.Uri.joinPath(
-                 tempWorkspacePath,
-                 "versionCode.js"
-               );
-               await vscode.workspace.fs.writeFile(
-                 fileUri,
-                 Buffer.from(code, "utf8")
-               );
-
-               // Open the new workspace
-               await vscode.commands.executeCommand(
-                 "vscode.openFolder",
-                 tempWorkspacePath,
-                 true
-               );
+               const document = await vscode.workspace.openTextDocument({
+                 content: code, // Insert the loaded code
+                 language: "javascript", // You can adjust the language here based on your needs
+               });
+               await vscode.window.showTextDocument(document);
+               vscode.window.showInformationMessage("Code loaded in editor");
              } catch (error) {
                vscode.window.showErrorMessage(
-                 `Error loading code into workspace: ${
+                 `Failed to load code in editor: ${
                    error instanceof Error ? error.message : "Unknown error"
                  }`
                );
@@ -230,6 +216,7 @@ export function activate(context: vscode.ExtensionContext) {
          undefined,
          context.subscriptions
        );
+
 
       } catch (error) {
         vscode.window.showErrorMessage(
@@ -280,7 +267,7 @@ function getWebviewContent(code: string): string {
           padding: 10px;
           border-radius: 5px;
           overflow-x: auto;
-          color: #FFFFFF
+          color: #FFFFFF;
         }
       </style>
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -288,34 +275,33 @@ function getWebviewContent(code: string): string {
     </head>
     <body>
       <h1>Code Version</h1>
-       <div class="container-fluid mt-4">
-            <pre><code>${code}</code></pre>
-            <button id="deleteButton" type="button" class="btn btn-danger">Delete</button>
-            <button id="loadWorkspaceButton" type="button" class="btn btn-primary mt-2">Load in New Workspace</button>
-       </div>
-       
-       <script>
-         const vscode = acquireVsCodeApi();
+      <pre><code>${code}</code></pre>
+      <button id="loadButton" class="btn btn-primary">Load in Editor</button>
+      <button id="deleteButton" class="btn btn-danger">Delete</button>
 
-         // Add event listener to the delete button
-         document.getElementById('deleteButton').addEventListener('click', () => {
-           vscode.postMessage({
-             command: 'deleteVersion',
-             text: 'Code version deleted successfully!'
-           });
-         });
+      <script>
+        const vscode = acquireVsCodeApi();
 
-         // Add event listener to the load workspace button
-         document.getElementById('loadWorkspaceButton').addEventListener('click', () => {
-           vscode.postMessage({
-             command: 'loadInWorkspace',
-             code: \`${code}\`
-           });
-         });
-       </script>
+        // Load code in editor button
+        document.getElementById('loadButton').addEventListener('click', () => {
+          vscode.postMessage({
+            command: 'loadInEditor',
+            text: 'Load code in editor'
+          });
+        });
+
+        // Delete code version button
+        document.getElementById('deleteButton').addEventListener('click', () => {
+          vscode.postMessage({
+            command: 'deleteVersion',
+            text: 'Code version deleted successfully!'
+          });
+        });
+      </script>
     </body>
     </html>
   `;
 }
+
 
 export function deactivate() {}
