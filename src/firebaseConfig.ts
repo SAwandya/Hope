@@ -11,8 +11,14 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import { MongoClient } from "mongodb";
 
 import { FirebaseApp } from "@firebase/app-types";
+
+const mongoUri =
+  "mongodb+srv://thusalapi:79WSKJoZqmMM8fdG@cluster0.1jgln.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"; // Replace with your MongoDB Atlas connection string
+
+const mongoClient = new MongoClient(mongoUri);
 
 // Firebase configuration
 const firebaseConfig = {
@@ -55,6 +61,7 @@ export async function getCurrentVersion(sessionId: string, studentId: string) {
   return versionCount + 1; // Version numbers start from 1
 }
 
+// Function to upload code to Firebase and MongoDB
 export async function uploadCode(
   sessionId: string,
   studentId: string,
@@ -68,10 +75,25 @@ export async function uploadCode(
       `sessions/${sessionId}/students/${studentId}/codeVersions/${currentVersion}`
     );
 
+    // Upload to Firebase Firestore
     await setDoc(codeVersionRef, {
       code: code,
-      commitMessage: commitMessage, // Store commit message
+      commitMessage: commitMessage,
       timestamp: serverTimestamp(),
+    });
+
+    // Upload to MongoDB Atlas
+    await mongoClient.connect(); // Ensure connection is established
+    const database = mongoClient.db("test"); // Replace with your database name
+    const collection = database.collection("codeuploads"); // Replace with your collection name
+
+    await collection.insertOne({
+      sessionId,
+      studentId,
+      code,
+      commitMessage,
+      timestamp: new Date(), // or serverTimestamp() if you prefer
+      version: currentVersion,
     });
 
     return `Code uploaded successfully as version ${currentVersion} with commit message: "${commitMessage}"`;
@@ -79,6 +101,8 @@ export async function uploadCode(
     throw new Error(
       `Failed to upload code: ${error instanceof Error ? error.message : error}`
     );
+  } finally {
+    await mongoClient.close(); // Close the connection
   }
 }
 
