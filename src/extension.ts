@@ -97,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
   const openWebviewPanelCommand = vscode.commands.registerCommand(
     "extension.openWebviewPanel",
     () => {
-      UploadCodePanel.createOrShow(context);
+      UploadCodePanel.createOrShow(context, studentId);
     }
   );
 
@@ -176,29 +176,48 @@ export function activate(context: vscode.ExtensionContext) {
 
         panel.webview.html = getWebviewContent(code);
 
-        // Handle messages from the webview
-        panel.webview.onDidReceiveMessage(
-          async (message) => {
-            if (message.command === "deleteVersion") {
-              // Delete the specific version from Firestore
-              try {
-                await deleteDoc(codeDocRef);
-                vscode.window.showInformationMessage(message.text);
+       panel.webview.onDidReceiveMessage(
+         async (message) => {
+           if (message.command === "deleteVersion") {
+             // Handle delete version
+             try {
+               await deleteDoc(codeDocRef);
+               vscode.window.showInformationMessage(message.text);
 
-                // Close the webview panel after deletion
-                panel.dispose();
-              } catch (error) {
-                vscode.window.showErrorMessage(
-                  `Failed to delete version: ${
-                    error instanceof Error ? error.message : "Unknown error"
-                  }`
-                );
-              }
-            }
-          },
-          undefined,
-          context.subscriptions
-        );
+               // Close the webview panel after deletion
+               panel.dispose();
+             } catch (error) {
+               vscode.window.showErrorMessage(
+                 `Failed to delete version: ${
+                   error instanceof Error ? error.message : "Unknown error"
+                 }`
+               );
+             }
+           }
+
+           if (message.command === "loadInEditor") {
+             // Open a new untitled text editor and load the code
+             try {
+               const document = await vscode.workspace.openTextDocument({
+                 content: code, // Insert the loaded code
+                 language: "javascript", // You can adjust the language here based on your needs
+               });
+               await vscode.window.showTextDocument(document);
+               vscode.window.showInformationMessage("Code loaded in editor");
+             } catch (error) {
+               vscode.window.showErrorMessage(
+                 `Failed to load code in editor: ${
+                   error instanceof Error ? error.message : "Unknown error"
+                 }`
+               );
+             }
+           }
+         },
+         undefined,
+         context.subscriptions
+       );
+
+
       } catch (error) {
         vscode.window.showErrorMessage(
           `Error opening version: ${
@@ -230,7 +249,6 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(statusBar);
 }
 
-// Function to get HTML content for the webview
 function getWebviewContent(code: string): string {
   return `
     <!DOCTYPE html>
@@ -249,7 +267,7 @@ function getWebviewContent(code: string): string {
           padding: 10px;
           border-radius: 5px;
           overflow-x: auto;
-          color: #FFFFFF
+          color: #FFFFFF;
         }
       </style>
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -257,26 +275,33 @@ function getWebviewContent(code: string): string {
     </head>
     <body>
       <h1>Code Version</h1>
-       <div class="container-fluid mt-4">
-            <pre><code>${code}</code></pre>
-            <button id="deleteButton" type="button" class="btn btn-danger">Delete</button>
-       </div>
-       
-       <script>
-         const vscode = acquireVsCodeApi();
+      <pre><code>${code}</code></pre>
+      <button id="loadButton" class="btn btn-primary">Load in Editor</button>
+      <button id="deleteButton" class="btn btn-danger">Delete</button>
 
-         // Add event listener to the delete button
-         document.getElementById('deleteButton').addEventListener('click', () => {
-           // Send message to the VS Code extension
-           vscode.postMessage({
-             command: 'deleteVersion',
-             text: 'Code version deleted successfully!'
-           });
-         });
-       </script>
+      <script>
+        const vscode = acquireVsCodeApi();
+
+        // Load code in editor button
+        document.getElementById('loadButton').addEventListener('click', () => {
+          vscode.postMessage({
+            command: 'loadInEditor',
+            text: 'Load code in editor'
+          });
+        });
+
+        // Delete code version button
+        document.getElementById('deleteButton').addEventListener('click', () => {
+          vscode.postMessage({
+            command: 'deleteVersion',
+            text: 'Code version deleted successfully!'
+          });
+        });
+      </script>
     </body>
     </html>
   `;
 }
+
 
 export function deactivate() {}
